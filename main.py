@@ -1,20 +1,24 @@
+import subprocess
+
 from utils.processamento import Processamento
 
 def main():
     """
-    Executa o processamento dos dados do acelerômetro e GPS.
-    Salva os resultados em arquivos na pasta 'data/processed'.
+    Executa o processamento dos dados e inicia a interface do Streamlit.
     """
     print("Iniciando o processamento dos dados...")
     
     try:
+        # Instancia e executa o processamento
         processador = Processamento()
         processador.process()
-        
         print("Processamento concluído com sucesso!")
-        print("Os arquivos processados foram salvos.")
+
+        # Iniciar a interface Streamlit
+        print("Iniciando a interface...")
+        subprocess.run(["streamlit", "run", "interface/app.py"])
     except Exception as e:
-        print(f"Ocorreu um erro durante o processamento: {e}")
+        print(f"Ocorreu um erro durante o processamento ou execução da interface: {e}")
 
 if __name__ == "__main__":
     main()
