@@ -1,70 +1,69 @@
-import numpy as np
 import pandas as pd
+import numpy as np
+from scipy.signal import find_peaks
+
 
 class Acelerometro:
-    def __init__(self, data=None):
+    def __init__(self, data=None, data_path=None):
         """
-        Inicializa a classe Acelerometro.
-        :param data: Um DataFrame ou array contendo os dados do acelerômetro (x, y, z).
+        Inicializa a classe Acelerometro e carrega os dados, se fornecidos.
+        :param data: Um DataFrame ou array contendo os dados do acelerômetro.
+        :param data_path: Caminho para o arquivo de dados (CSV ou similar).
         """
         self.data = None
-        if data is not None:
-            self.load_data(data)
-    
-    def load_data(self, data):
+        if data_path:
+            self.load_data(data_path=data_path)
+        elif data is not None:
+            self.load_data(data=data)
+
+    def load_data(self, data_path=None, data=None):
         """
         Carrega os dados do acelerômetro.
-        :param data: Um DataFrame ou array contendo as colunas x, y, z.
+        :param data_path: Caminho para o arquivo CSV contendo os dados.
+        :param data: Um DataFrame ou array contendo os dados do acelerômetro.
         """
-        if isinstance(data, pd.DataFrame):
+        if data_path:
+            # Tentar carregar o arquivo como CSV
+            try:
+                self.data = pd.read_csv(data_path)
+            except Exception as e:
+                raise ValueError(f"Erro ao carregar dados do caminho {data_path}: {e}")
+        elif isinstance(data, pd.DataFrame):
             self.data = data
         elif isinstance(data, np.ndarray):
-            self.data = pd.DataFrame(data, columns=["x", "y", "z"])
+            self.data = pd.DataFrame(data, columns=["Time(ms)", "Accel_X", "Accel_Y", "Accel_Z", 
+                                                    "Gyro_X", "Gyro_Y", "Gyro_Z", "Temp_C"])
         else:
-            raise ValueError("Os dados devem ser um DataFrame ou um array NumPy.")
-    
+            raise ValueError("Os dados devem ser um caminho válido, um DataFrame ou um array NumPy.")
+        
+        # Verificar se as colunas necessárias estão presentes
+        required_columns = {"Accel_X", "Accel_Y", "Accel_Z"}
+        if not required_columns.issubset(self.data.columns):
+            raise ValueError(f"O conjunto de dados deve conter as colunas {required_columns}.")
+
+
     def calculate_magnitude(self):
-        """
-        Calcula a magnitude do vetor de aceleração para cada registro.
-        :return: Um array com as magnitudes calculadas.
-        """
         if self.data is None:
             raise ValueError("Nenhum dado carregado. Use 'load_data()' para carregar os dados.")
         
         self.data["magnitude"] = np.sqrt(
-            self.data["x"]**2 + self.data["y"]**2 + self.data["z"]**2
+            self.data["Accel_X"]**2 + self.data["Accel_Y"]**2 + self.data["Accel_Z"]**2
         )
         return self.data["magnitude"]
     
-    def detect_anomalies(self, threshold=2.0):
+    
+    def contar_passos(self, height_threshold=1.0, distance_threshold=20):
         """
-        Detecta anomalias baseadas em um limite para a magnitude.
-        :param threshold: Limite para considerar uma magnitude como anômala.
-        :return: Um DataFrame com os registros anômalos.
+        Conta o número de passos baseado em picos na magnitude da aceleração.
+        :param height_threshold: Magnitude mínima para considerar um pico (ajustável).
+        :param distance_threshold: Distância mínima entre picos consecutivos (em amostras).
+        :return: Número estimado de passos.
         """
         if "magnitude" not in self.data.columns:
             self.calculate_magnitude()
-        
-        anomalies = self.data[self.data["magnitude"] > threshold]
-        return anomalies
+
+        # Detectar picos na magnitude
+        peaks, _ = find_peaks(self.data["magnitude"], height=height_threshold, distance=distance_threshold)
+
+        return len(peaks)
     
-    def filter_by_time(self, timestamps):
-        """
-        Filtra os dados por uma lista de timestamps.
-        :param timestamps: Lista de timestamps a serem incluídos.
-        :return: Um DataFrame com os dados filtrados.
-        """
-        if "timestamp" not in self.data.columns:
-            raise ValueError("Os dados não possuem uma coluna 'timestamp'.")
-        
-        return self.data[self.data["timestamp"].isin(timestamps)]
-    
-    def summarize(self):
-        """
-        Gera um resumo estatístico dos dados do acelerômetro.
-        :return: Um DataFrame com estatísticas descritivas.
-        """
-        if self.data is None:
-            raise ValueError("Nenhum dado carregado. Use 'load_data()' para carregar os dados.")
-        
-        return self.data.describe()
