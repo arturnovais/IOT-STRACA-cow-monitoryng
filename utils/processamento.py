@@ -1,8 +1,9 @@
-from acelerometro import Acelerometro
-from gps import GPS
+from utils.acelerometro import Acelerometro
+from utils.gps import GPS
 
 import pandas as pd
 import os
+import numpy as np
 
 
 acelerometro_raw_path = "data/raw/acelerometro_example.csv"
@@ -54,8 +55,14 @@ class Processamento():
         if filename.endswith(".csv") and isinstance(data, pd.DataFrame):
             data.to_csv(filepath, index=False)
         elif filename.endswith(".json") and isinstance(data, dict):
+            # Converter valores para tipos JSON serializáveis
+            serializable_data = {
+                k: (v.item() if isinstance(v, (np.int64, np.float64)) else v)
+                for k, v in data.items()
+            }
             with open(filepath, "w") as f:
                 import json
-                json.dump(data, f, indent=4)
+                json.dump(serializable_data, f, indent=4)
         else:
             raise ValueError(f"Formato de arquivo ou tipo de dados não suportado para {filename}")
+
