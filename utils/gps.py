@@ -92,3 +92,25 @@ class GPS:
 
         # Retornar apenas o DataFrame com timestep e distância acumulada
         return self.data[["UTC_Time", "Distancia Acumulada(m)"]]
+    
+    
+    def calcular_tempo_movimento(self, velocidade_minima=0.5):
+        """
+        Calcula o tempo total em movimento e parado com base na velocidade.
+        :param velocidade_minima: Velocidade mínima para considerar que está em movimento.
+        :return: Tuple (tempo_em_movimento, tempo_parado) em segundos.
+        """
+        if self.data is None or "Speed" not in self.data.columns or "Time(ms)" not in self.data.columns:
+            raise ValueError("Os dados de GPS devem conter as colunas 'Speed' e 'Time(ms)'.")
+
+        # Adicionar uma coluna para identificar movimento
+        self.data["Em Movimento"] = self.data["Speed"] > velocidade_minima
+
+        # Calcular a diferença de tempo entre amostras
+        self.data["Delta Tempo (s)"] = self.data["Time(ms)"].diff().fillna(0) / 1000.0
+
+        # Separar o tempo total em movimento e parado
+        tempo_em_movimento = self.data.loc[self.data["Em Movimento"], "Delta Tempo (s)"].sum()
+        tempo_parado = self.data.loc[~self.data["Em Movimento"], "Delta Tempo (s)"].sum()
+
+        return tempo_em_movimento, tempo_parado
