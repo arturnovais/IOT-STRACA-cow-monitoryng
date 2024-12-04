@@ -21,4 +21,6 @@ def main():
         print(f"Ocorreu um erro durante o processamento ou execução da interface: {e}")
 
 if __name__ == "__main__":
+    """_summary_
+    """   
     main()
