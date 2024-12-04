@@ -30,6 +30,7 @@ class GPS:
         if not required_columns.issubset(self.data.columns):
             raise ValueError(f"O conjunto de dados deve conter as colunas {required_columns}.")
     
+    
     def calcular_distancia_total(self):
         """
         Calcula a distância total percorrida com base nas coordenadas GPS.
@@ -90,4 +91,4 @@ class GPS:
         self.data["Distancia Acumulada(m)"] = self.data["Distancia(m)"].cumsum()
 
         # Retornar apenas o DataFrame com timestep e distância acumulada
-        return self.data[["Time(ms)", "Distancia Acumulada(m)"]]
+        return self.data[["UTC_Time", "Distancia Acumulada(m)"]]

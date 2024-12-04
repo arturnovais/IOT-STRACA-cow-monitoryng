@@ -67,3 +67,23 @@ class Acelerometro:
 
         return len(peaks)
     
+    
+    def detectar_movimentos_descendentes_y(self, threshold=-0.1):
+        """
+        Detecta movimentos descendentes únicos com base no eixo Y.
+        :param threshold: Valor de aceleração abaixo do qual consideramos um movimento descendente.
+        :return: Número de movimentos descendentes detectados.
+        """
+        if "Accel_Y" not in self.data.columns:
+            raise ValueError("Os dados não possuem a coluna 'Accel_Y'.")
+
+        # Detectar onde Accel_Y está abaixo do limiar
+        movimentos_descendentes = self.data["Accel_Y"] < threshold
+
+        # Detectar transições: somente quando muda de não-descendente para descendente
+        transicoes = movimentos_descendentes.astype(int).diff().fillna(0)
+
+        # Contar quantas vezes houve a transição para movimento descendente (1 indica início de movimento)
+        movimentos_unicos = (transicoes == 1).sum()
+
+        return movimentos_unicos
