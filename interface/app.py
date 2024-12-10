@@ -3,10 +3,25 @@ import pandas as pd
 import json
 import os
 import matplotlib.pyplot as plt
+import folium
+from streamlit_folium import st_folium
+import sys
 
-# Configuração da página deve vir logo após os imports
+from time import sleep
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+utils_dir = os.path.abspath(os.path.join(current_dir, "../utils"))
+sys.path.append(utils_dir)
+from Gpt_generator import Gpt_generator
+
+
+gpt_generator = Gpt_generator()
+
 processed_path = "data/processed"
 st.set_page_config(page_title="Straca: Monitoramento de Bovinos", layout="wide", page_icon="🐄")
+
+
 
 def add_custom_css():
     st.markdown(
@@ -75,12 +90,60 @@ def main():
     st.markdown("<h1 style='text-align: center;'>🐄 Straca: Monitoramento de Bovinos</h1>", unsafe_allow_html=True)
 
     # Menu lateral
-    st.sidebar.header("Menu")
-    st.sidebar.write("Navegue pelas análises:")
-
-    # Carregar dados
+    #st.sidebar.header("Menu")
+    #st.sidebar.write("Navegue pelas análises:")
+    
     st.info("🔄 Carregando dados processados, por favor aguarde...")
     data = load_data()
+
+    if st.sidebar.button("Gerar Relatório"):
+        # Espaço para exibir o texto gerado token a token
+        placeholder = st.sidebar.empty()
+
+        
+        # Escrever texto dinamicamente
+        
+        
+        pre_defined_prompt = f"""Você é um assistente de um aplicativo chamado Straca, onde temos por objetivo fornecer 
+                        insights e análises sobre monitoramento bovino, então temos informações vindas de um 
+                        dispositivo IOT que monitora a atividade de um bovino.
+                        
+                        Seu objetivo é o seguinte: BASEADO NAS INFORMAÇÕES ABAIXO, você deve escrever um relatório
+                        sobre daquele boi, a escrita deve ser simples e direta e o mais curta possível
+                        além disso, seria interessante fornecer análises e insights sobre
+                        o comportamento do bovino, principalmente se houver algo de errado ou algo não tão óbvio.
+                        
+                        LEMBRE-SE SEU OBJETIVO NÃO É SIMPLESMENTE FORNECER OS DADOS, E SIM GERAR UM RELATÓRIO SIMPLES E COM
+                        INSIGHTS VALIOSOS SOBRE O COMPORTAMENTO DAQUELE BOVINO.
+                        
+                        Informações disponíveis:
+                            distancia_total (metros) = {data["distancia_total.json"]["distancia_total_m"]}
+                            
+                            Quantas vezes o boi se alimentou ou bebeu água = {data["movimentos_descendentes.json"]["movimentos_descendentes"]}
+                            
+                            tempo_em_movimento = {data["tempo_movimento.json"]["tempo_em_movimento_s"] // 60}
+                            tempo_parado = {data["tempo_movimento.json"]["tempo_parado_s"] // 60}
+                            
+                            Distância acumulada ao longo do tempo: {data["distancia_por_tempo.csv"][::100]}
+                            
+                        """
+        
+        
+        placeholder.write("Gerando relatório...")
+        generated_text = ""
+        
+        
+        # Chamar o gerador de texto com o prompt predefinido
+        for token in gpt_generator.invoke_stream(pre_defined_prompt):
+            generated_text += token
+            placeholder.write(generated_text)  # Atualiza o texto no Streamlit
+            sleep(0.05)  # Pequeno atraso para simular o efeito de digitação
+
+        st.sidebar.success("Relatório gerado com sucesso!")
+    else:
+        st.sidebar.write("Clique no botão acima para gerar o relatório.")
+
+
 
     st.markdown("## 📋 Resumo Geral")
     col1, col2, col3 = st.columns(3)
@@ -141,9 +204,9 @@ def main():
     if "distancia_por_tempo.csv" in data:
         with st.expander("📈 Distância Acumulada na última hora", expanded=True):
             df_distancia = data["distancia_por_tempo.csv"]
+            df_distancia["UTC_Time"] = pd.to_datetime(df_distancia["UTC_Time"])
             st.line_chart(df_distancia.set_index("UTC_Time")["Distancia Acumulada(m)"])
 
-    # Mapa de posições
     if "posicao_tempo.csv" in data:
         with st.expander("🗺️ Posição Geográfica ao Longo do Tempo", expanded=False):
             df_posicao = data["posicao_tempo.csv"]
