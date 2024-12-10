@@ -95,7 +95,7 @@ def main():
     with col2:
         if "distancia_total.json" in data:
             distancia_total = data["distancia_total.json"]["distancia_total_m"]
-            st.metric(label="📏 Distância Total (m)", value=f"{distancia_total:.2f}")
+            st.metric(label="📏 Distância Total (m)", value=f"{int(distancia_total)}")
 
     # Exibir movimentos descendentes
     with col3:
@@ -108,8 +108,8 @@ def main():
     col4, col5 = st.columns([2, 1])  # Gráfico maior que os textos
 
     if "tempo_movimento.json" in data:
-        tempo_em_movimento = data["tempo_movimento.json"]["tempo_em_movimento_s"]
-        tempo_parado = data["tempo_movimento.json"]["tempo_parado_s"]
+        tempo_em_movimento = data["tempo_movimento.json"]["tempo_em_movimento_s"] // 60
+        tempo_parado = data["tempo_movimento.json"]["tempo_parado_s"] // 60
 
         # Criar gráfico de pizza
         labels = ['Tempo em Movimento', 'Tempo Parado']
@@ -131,15 +131,15 @@ def main():
 
         # Exibir métricas na coluna ao lado
         with col5:
-            st.metric(label="Tempo em Movimento (s)", value=f"{tempo_em_movimento}")
-            st.metric(label="Tempo Parado (s)", value=f"{tempo_parado}")
+            st.metric(label="Tempo em Movimento (min)", value=f"{int(tempo_em_movimento)}")
+            st.metric(label="Tempo Parado (min)", value=f"{int(tempo_parado)}")
 
     # Exibir gráficos adicionais
     st.markdown("## 📊 Análises Detalhadas")
 
     # Gráfico de distância por tempo
     if "distancia_por_tempo.csv" in data:
-        with st.expander("📈 Distância Acumulada ao Longo do Tempo", expanded=True):
+        with st.expander("📈 Distância Acumulada na última hora", expanded=True):
             df_distancia = data["distancia_por_tempo.csv"]
             st.line_chart(df_distancia.set_index("UTC_Time")["Distancia Acumulada(m)"])
 
@@ -148,7 +148,7 @@ def main():
         with st.expander("🗺️ Posição Geográfica ao Longo do Tempo", expanded=False):
             df_posicao = data["posicao_tempo.csv"]
             df_posicao = df_posicao.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
-            st.map(df_posicao, use_container_width=True)
+            st.map(df_posicao, use_container_width=True, size=1)
 
     # Footer personalizado
     st.markdown("<hr style='border: 2px solid #FFA500;'>", unsafe_allow_html=True)
