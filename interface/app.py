@@ -113,11 +113,19 @@ def main():
     data = load_data()
     
     
-    logo = Image.open("interface/components/logo.jpeg")  # Caminho para o arquivo de logo
-    
-    
+    logo = Image.open("interface/components/logoo.jpeg")  # Certifique-se do caminho correto da logo
+    st.sidebar.markdown(
+        f"""
+        <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+            <img src="data:image/jpeg;base64,{logo_to_base64(logo)}" alt="Logo" style="width: 40px; margin-right: 10px;">
+            <h2 style="margin: 0; font-family: Arial, sans-serif; color: #333;">Assistente Joaquim</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    if st.sidebar.button("Gerar Relatório", key="btn-gerar-relatorio"):
+    # Botão de "Gerar Relatório"
+    if st.sidebar.button("Gerar Relatório"):
         # Espaço para exibir o texto gerado token a token
         placeholder = st.sidebar.empty()
 
@@ -133,6 +141,8 @@ def main():
                         sobre daquele boi, a escrita deve ser simples e direta e o mais curta possível
                         além disso, seria interessante fornecer análises e insights sobre
                         o comportamento do bovino, principalmente se houver algo de errado ou algo não tão óbvio.
+                        
+                        lembre-se de resumir bem, não faça um texto muito longo.
                         
                         LEMBRE-SE SEU OBJETIVO NÃO É SIMPLESMENTE FORNECER OS DADOS, E SIM GERAR UM RELATÓRIO SIMPLES E COM
                         INSIGHTS VALIOSOS SOBRE O COMPORTAMENTO DAQUELE BOVINO.
