@@ -134,7 +134,7 @@ class Acelerometro:
         Calcula o tempo total que a vaca passa comendo, baseado em movimentos descendentes prolongados.
         :param threshold: Valor de aceleração abaixo do qual consideramos a cabeça abaixada.
         :param duracao_minima: Tempo mínimo (em segundos) para considerar que a vaca está comendo.
-        :return: Tempo total comendo (em segundos).
+        :return: Tempo total comendo (em minutos, como um número inteiro).
         """
         # Verificar se a coluna de tempo existe como 'Time(ms)'
         if "Time(ms)" in self.data.columns:
@@ -168,7 +168,7 @@ class Acelerometro:
                     # Calcular duração do movimento
                     duracao = (timestamp_atual - inicio_movimento) / 1000.0  # Converter ms para segundos
 
-                    # Acumular tempo se for um movimento prolongado
+                    # Acumular tempo se for um movimento prolongado (>= 10 segundos)
                     if duracao >= duracao_minima:
                         tempo_comendo += duracao
 
@@ -181,6 +181,10 @@ class Acelerometro:
             if duracao >= duracao_minima:
                 tempo_comendo += duracao
 
-        return int(tempo_comendo / 600)
+        # Retornar tempo total comendo em minutos como inteiro
+        #2 casas decimais
+        return round((tempo_comendo / 600), 1)
+
+
 
 
