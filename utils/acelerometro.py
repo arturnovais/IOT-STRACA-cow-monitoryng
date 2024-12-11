@@ -129,3 +129,58 @@ class Acelerometro:
         return movimentos_prolongados
 
 
+    def calcular_tempo_comendo(self, threshold=-0.1, duracao_minima=6):
+        """
+        Calcula o tempo total que a vaca passa comendo, baseado em movimentos descendentes prolongados.
+        :param threshold: Valor de aceleração abaixo do qual consideramos a cabeça abaixada.
+        :param duracao_minima: Tempo mínimo (em segundos) para considerar que a vaca está comendo.
+        :return: Tempo total comendo (em segundos).
+        """
+        # Verificar se a coluna de tempo existe como 'Time(ms)'
+        if "Time(ms)" in self.data.columns:
+            # Renomear para 'timestamp' para consistência
+            self.data.rename(columns={"Time(ms)": "timestamp"}, inplace=True)
+
+        # Validar presença das colunas necessárias
+        if "Accel_Y" not in self.data.columns or "timestamp" not in self.data.columns:
+            print(f"Colunas disponíveis: {self.data.columns}")
+            raise ValueError("Os dados precisam conter as colunas 'Accel_Y' e 'timestamp'.")
+
+        # Ordenar os dados pelo timestamp para garantir sequência correta
+        self.data = self.data.sort_values("timestamp").reset_index(drop=True)
+
+        # Detectar onde Accel_Y está abaixo do limiar
+        movimentos_descendentes = self.data["Accel_Y"] < threshold
+
+        # Inicializar variáveis para cálculo do tempo total
+        tempo_comendo = 0.0
+        inicio_movimento = None
+
+        # Iterar pelos dados para calcular períodos prolongados
+        for i, is_descendente in enumerate(movimentos_descendentes):
+            timestamp_atual = self.data["timestamp"].iloc[i]
+
+            if is_descendente:
+                if inicio_movimento is None:
+                    inicio_movimento = timestamp_atual  # Marcar o início do movimento
+            else:
+                if inicio_movimento is not None:
+                    # Calcular duração do movimento
+                    duracao = (timestamp_atual - inicio_movimento) / 1000.0  # Converter ms para segundos
+
+                    # Acumular tempo se for um movimento prolongado
+                    if duracao >= duracao_minima:
+                        tempo_comendo += duracao
+
+                    # Resetar início do movimento
+                    inicio_movimento = None
+
+        # Caso o movimento esteja em andamento no final da série
+        if inicio_movimento is not None:
+            duracao = (self.data["timestamp"].iloc[-1] - inicio_movimento) / 1000.0
+            if duracao >= duracao_minima:
+                tempo_comendo += duracao
+
+        return int(tempo_comendo / 600)
+
+

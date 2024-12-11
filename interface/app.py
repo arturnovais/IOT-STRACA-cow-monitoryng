@@ -69,7 +69,7 @@ def load_data():
     data = {}
 
     # Ler arquivos JSON
-    for json_file in ["passos.json", "distancia_total.json", "movimentos_descendentes.json", "tempo_movimento.json"]:
+    for json_file in ["passos.json", "distancia_total.json", "movimentos_descendentes.json", "tempo_movimento.json", "tempo_comendo.json"]:
         path = os.path.join(processed_path, json_file)
         if os.path.exists(path):
             with open(path, "r") as f:
@@ -113,6 +113,7 @@ def main():
     data = load_data()
     
     
+
     logo = Image.open("interface/components/logoo.jpeg")  # Certifique-se do caminho correto da logo
     st.sidebar.markdown(
         f"""
@@ -188,9 +189,9 @@ def main():
 
     # Exibir número de passos
     with col1:
-        if "passos.json" in data:
-            passos = data["passos.json"]["passos"]
-            st.metric(label="🐾 Passos Detectados", value=passos)
+        if "tempo_comendo.json" in data:
+            tempo_comendo = data["tempo_comendo.json"]["tempo_comendo"]
+            st.metric(label="🐾 Tempo cabeça abaixada (min)", value=tempo_comendo)
 
     # Exibir distância total
     with col2:

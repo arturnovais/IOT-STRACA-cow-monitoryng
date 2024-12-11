@@ -23,6 +23,8 @@ class Processamento():
     
     def process(self):
         passos = self.AC.contar_passos()
+        tempo_comendo = self.AC.calcular_tempo_comendo()
+        print('tempo_comendo ', tempo_comendo)
         distancia_total = self.GPS.calcular_distancia_total()
         distancia_por_tempo = self.GPS.calcular_distancia_acumulada()
         abaixou_cabeca_total = self.AC.detectar_movimentos_descendentes_y()
@@ -32,6 +34,7 @@ class Processamento():
         os.makedirs(processed_path, exist_ok=True)
 
         # Salvar os dados processados
+        self.salvar_dados("tempo_comendo.json", {"tempo_comendo": tempo_comendo})
         self.salvar_dados("passos.json", {"passos": passos})
         self.salvar_dados("distancia_total.json", {"distancia_total_m": distancia_total})
         self.salvar_dados("distancia_por_tempo.csv", distancia_por_tempo)
