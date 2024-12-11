@@ -124,6 +124,15 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    
+    col_titulo, col_selecao = st.columns([3, 1])
+    with col_titulo:
+        # Aqui já está o título "Resumo Geral"
+        st.markdown("## 📋 Resumo Geral")
+
+    with col_selecao:
+        # Dropdown que começa com "Matildes" como padrão
+        vaca_selecionada = st.selectbox("Selecione a vaca:", ["Matildes", "Jussara", "Mimosa"], index=0)
 
     # Botão de "Gerar Relatório"
     if st.sidebar.button("Gerar Relatório"):
@@ -138,8 +147,10 @@ def main():
                         insights e análises sobre monitoramento bovino, então temos informações vindas de um 
                         dispositivo IOT que monitora a atividade de um bovino.
                         
+                        Estamos analisando a vaca chamada **{vaca_selecionada}**.
+                        
                         Seu objetivo é o seguinte: BASEADO NAS INFORMAÇÕES ABAIXO, você deve escrever um relatório
-                        sobre daquele boi, a escrita deve ser simples e direta e o mais curta possível
+                        sobre a(o) {vaca_selecionada}, a escrita deve ser simples e direta e o mais curta possível
                         além disso, seria interessante fornecer análises e insights sobre
                         o comportamento do bovino, principalmente se houver algo de errado ou algo não tão óbvio.
                         
@@ -148,16 +159,18 @@ def main():
                         LEMBRE-SE SEU OBJETIVO NÃO É SIMPLESMENTE FORNECER OS DADOS, E SIM GERAR UM RELATÓRIO SIMPLES E COM
                         INSIGHTS VALIOSOS SOBRE O COMPORTAMENTO DAQUELE BOVINO.
                         
+                        Não precisa se explicar, apenas fornecer informações claras e objetivas juntamente a insights de alto valor.
+                        
                         Informações disponíveis:
                             distancia_total (metros) = {data["distancia_total.json"]["distancia_total_m"]}
                             
-                            Quantas vezes o boi se alimentou ou bebeu água = {data["movimentos_descendentes.json"]["movimentos_descendentes"]}
+                            Tempo em que passou comendo ou bebendo água (minutos) = {data["tempo_comendo.json"]["tempo_comendo"]}
                             
                             tempo_em_movimento (minutos) = {data["tempo_movimento.json"]["tempo_em_movimento_s"] // 60}
                             tempo_parado (minutos) = {data["tempo_movimento.json"]["tempo_parado_s"] // 60}
                             
-                            Distância acumulada ao longo do tempo: {data["distancia_por_tempo.csv"][::100]}
-                            
+                            Distância acumulada ao longo do tempo (importante): {data["distancia_por_tempo.csv"][::100]}
+    
                         """
         
         
@@ -177,14 +190,6 @@ def main():
 
 
 
-    col_titulo, col_selecao = st.columns([3,1])
-    with col_titulo:
-        # Aqui já está o título "Resumo Geral"
-        st.markdown("## 📋 Resumo Geral")
-        pass
-
-    with col_selecao:
-        st.selectbox("Selecione a vaca:", ["Matildes", "Jussara", "Mimosa"])
     col1, col2, col3 = st.columns(3)
 
     # Exibir número de passos
