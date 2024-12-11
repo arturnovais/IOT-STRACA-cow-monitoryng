@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import folium
 from streamlit_folium import st_folium
 import sys
+from PIL import Image
 
 from time import sleep
 
@@ -82,6 +83,21 @@ def load_data():
     
     return data
 
+
+def logo_to_base64(image):
+    """
+    Converte uma imagem PIL para uma string Base64 para uso no HTML.
+    """
+    import base64
+    from io import BytesIO
+
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    return img_str
+
+
+
 def main():
     # Adicionar CSS customizado
     add_custom_css()
@@ -95,8 +111,13 @@ def main():
     
     st.info("🔄 Carregando dados processados, por favor aguarde...")
     data = load_data()
+    
+    
+    logo = Image.open("interface/components/logo.jpeg")  # Caminho para o arquivo de logo
+    
+    
 
-    if st.sidebar.button("Gerar Relatório"):
+    if st.sidebar.button("Gerar Relatório", key="btn-gerar-relatorio"):
         # Espaço para exibir o texto gerado token a token
         placeholder = st.sidebar.empty()
 
@@ -121,8 +142,8 @@ def main():
                             
                             Quantas vezes o boi se alimentou ou bebeu água = {data["movimentos_descendentes.json"]["movimentos_descendentes"]}
                             
-                            tempo_em_movimento = {data["tempo_movimento.json"]["tempo_em_movimento_s"] // 60}
-                            tempo_parado = {data["tempo_movimento.json"]["tempo_parado_s"] // 60}
+                            tempo_em_movimento (minutos) = {data["tempo_movimento.json"]["tempo_em_movimento_s"] // 60}
+                            tempo_parado (minutos) = {data["tempo_movimento.json"]["tempo_parado_s"] // 60}
                             
                             Distância acumulada ao longo do tempo: {data["distancia_por_tempo.csv"][::100]}
                             
