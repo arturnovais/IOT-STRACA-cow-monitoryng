@@ -14,7 +14,7 @@ sys.path.append(current_dir)
 utils_dir = os.path.abspath(os.path.join(current_dir, "../utils"))
 sys.path.append(utils_dir)
 from Gpt_generator import Gpt_generator
-
+from generate_map import generate_map
 
 gpt_generator = Gpt_generator()
 
@@ -210,8 +210,13 @@ def main():
     if "posicao_tempo.csv" in data:
         with st.expander("🗺️ Posição Geográfica ao Longo do Tempo", expanded=False):
             df_posicao = data["posicao_tempo.csv"]
-            df_posicao = df_posicao.rename(columns={"Latitude": "latitude", "Longitude": "longitude"})
-            st.map(df_posicao, use_container_width=True, size=1)
+            df = df_posicao.drop(columns=["UTC_Time"]).rename(columns={"Latitude": "lat", "Longitude": "lng"})
+            print(df)
+            # Gerando o mapa interativo em HTML
+            generate_map(df)
+
+            # Exibindo o mapa interativo gerado
+            st.components.v1.html(open("mapa_interativo.html", "r").read(), height=600, scrolling=True)
 
     # Footer personalizado
     st.markdown("<hr style='border: 2px solid #FFA500;'>", unsafe_allow_html=True)
