@@ -109,7 +109,7 @@ def main():
     #st.sidebar.header("Menu")
     #st.sidebar.write("Navegue pelas análises:")
     
-    st.info("🔄 Carregando dados processados, por favor aguarde...")
+    #st.info("🔄 Carregando dados processados, por favor aguarde...")
     data = load_data()
     
     
