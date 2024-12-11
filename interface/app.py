@@ -176,7 +176,14 @@ def main():
 
 
 
-    st.markdown("## 📋 Resumo Geral")
+    col_titulo, col_selecao = st.columns([3,1])
+    with col_titulo:
+        # Aqui já está o título "Resumo Geral"
+        st.markdown("## 📋 Resumo Geral")
+        pass
+
+    with col_selecao:
+        st.selectbox("Selecione a vaca:", ["Matildes", "Jussara", "Mimosa"])
     col1, col2, col3 = st.columns(3)
 
     # Exibir número de passos

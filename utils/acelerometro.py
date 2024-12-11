@@ -68,22 +68,64 @@ class Acelerometro:
         return len(peaks)
     
     
-    def detectar_movimentos_descendentes_y(self, threshold=-0.1):
+    def detectar_movimentos_descendentes_y(self, threshold=-0.1, duracao_minima=6):
         """
-        Detecta movimentos descendentes únicos com base no eixo Y.
+        Detecta movimentos descendentes únicos com base no eixo Y e diferencia movimentos rápidos de movimentos prolongados.
         :param threshold: Valor de aceleração abaixo do qual consideramos um movimento descendente.
-        :return: Número de movimentos descendentes detectados.
+        :param duracao_minima: Tempo mínimo (em segundos) para considerar que a cabeça permaneceu abaixada.
+        :return: 
+            - movimentos_unicos: Número total de movimentos descendentes detectados.
+            - movimentos_prolongados: Número de movimentos prolongados (possivelmente comer ou beber).
         """
-        if "Accel_Y" not in self.data.columns:
-            raise ValueError("Os dados não possuem a coluna 'Accel_Y'.")
+        # Verificar se a coluna de tempo existe como 'Time(ms)'
+        if "Time(ms)" in self.data.columns:
+            # Renomear para 'timestamp' para consistência
+            self.data.rename(columns={"Time(ms)": "timestamp"}, inplace=True)
+
+        # Validar presença das colunas necessárias
+        if "Accel_Y" not in self.data.columns or "timestamp" not in self.data.columns:
+            # Exibir as colunas disponíveis para diagnóstico
+            print(f"Colunas disponíveis: {self.data.columns}")
+            raise ValueError("Os dados precisam conter as colunas 'Accel_Y' e 'timestamp'.")
+
+        # Ordenar os dados pelo timestamp para garantir sequência correta
+        self.data = self.data.sort_values("timestamp").reset_index(drop=True)
 
         # Detectar onde Accel_Y está abaixo do limiar
         movimentos_descendentes = self.data["Accel_Y"] < threshold
 
-        # Detectar transições: somente quando muda de não-descendente para descendente
-        transicoes = movimentos_descendentes.astype(int).diff().fillna(0)
+        # Inicializar variáveis para análise
+        movimentos_unicos = 0
+        movimentos_prolongados = 0
+        inicio_movimento = None
 
-        # Contar quantas vezes houve a transição para movimento descendente (1 indica início de movimento)
-        movimentos_unicos = (transicoes == 1).sum()
+        # Iterar pelos dados para identificar movimentos
+        for i, is_descendente in enumerate(movimentos_descendentes):
+            timestamp_atual = self.data["timestamp"].iloc[i]
 
-        return movimentos_unicos
+            if is_descendente:
+                if inicio_movimento is None:
+                    inicio_movimento = timestamp_atual  # Marcar o início do movimento
+            else:
+                if inicio_movimento is not None:
+                    # Calcular duração do movimento
+                    duracao = (timestamp_atual - inicio_movimento) / 1000.0  # Converter ms para segundos
+                    movimentos_unicos += 1
+
+                    # Verificar se o movimento é prolongado
+                    if duracao >= duracao_minima:
+                        movimentos_prolongados += 1
+
+                    # Resetar início do movimento
+                    inicio_movimento = None
+
+        # Caso o movimento esteja em andamento no final da série
+        if inicio_movimento is not None:
+            duracao = (self.data["timestamp"].iloc[-1] - inicio_movimento) / 1000.0
+            movimentos_unicos += 1
+            if duracao >= duracao_minima:
+                movimentos_prolongados += 1
+
+        return movimentos_prolongados
+
+
